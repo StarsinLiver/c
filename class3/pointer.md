@@ -1372,3 +1372,283 @@ void func2 (int (*pArr) [3][4]) ---> void func1 (int pArr[][3][4])
 
 > char* getInput(void); // 배열 포인터의 타입 허용
 
+
+<br/>
+
+## 함수 와 포인터
+### 함수 포인터의 선언과 초기화
+함수 포인터란 "함수의 주소를 저장하기 위한 변수" 이다. 프로그램의 실행 중에 함수가 호출되면, 해당 함수가 저장된 메모리 주소에 있는 명령들이 하나씩 차례로 실행된다.
+
+포인터의 타입은 포인터가 가리키는 대상의 타입에 '*'를 붙인 것이므로, 함수 포인터를 선언하려면 먼저 함수 포인터가 가리키는 대상인 함수의 타입을 알아야 한다.
+
+```
+반환타입 함수이름 (매개변수 목록); // 함수의 선언문
+반환타입 (매개변수 목록)           // 함수의 타입
+```
+
+따라서 밑과 같다.
+```
+int add(int a , int b); // 함수 add 의 타입은 'int (int,int)'
+int mul(int x , int y); // 함수 mul 의 타입은 'int (int,int)'
+```
+
+함수들을 가리키기 위한 포인터의 타입은 함수 타입 (가정) 'int(int , int)' 에 '*' 를 추가하면 되는데, 기호 '*'를 추가할 위치는 반환 타입과 매개변수의 사이이다.
+
+```c
+int (*) (int , int) // 타입이 'int(int,int)'인 함수를 가리키는 포인터의 타입
+int (*pf) (int , int) // 타입이 'int(int,int)'인 함수를 가리키는 포인터 pf의 선언
+```
+
+간단히 정리하면 함수 포인터의 선언은 가리키려는 함수의 선언문에서 '함수이름' 대신에 '(*포인터이름)'을 넣으면 된다.
+
+```
+반환타입 함수이름 (매개변수 목록);    // 함수의 선언
+반환타입 (*포인터이름) (매개변수 목록); // 함수 포인터 선언
+```
+
+이때 한가지 주의할 점은 괄호() 넣는 것을 잊지 말아야 한다는 것이다. 괄호가 없으면 함수 포인터 선언이 아니라 반환타입이 'int*'인 함수의 선언이 되기 때문이다.
+
+```
+int (*pf) (int, int); // 함수 포인터 pf 선언
+int *pf(int, int);    // 반환타입이 'int*' 인 함수 pf 선언
+```
+
+이렇게 선언된 함수 포인터 pf 가 함수 add를 가리키게 하려면, 함수 add의 주소를 pf 에 저장해야하는데, 배열의 이름이 배열의 주소인것처럼, 함수의 이름은 함수의 주소이므로 아래와 같이 pf에 함수의 이름을 저장하면 된다.
+
+```
+int add(int , int);
+int (*pf) (int , int) = add; // 함수의 주소 (add)를 함수 포인터 pf 에 저장
+```
+
+함수 포인터 pf 로 함수 add 뿐만아니라, 타입이 'int(int , int)'인 함수는 모두 가리킬 수 있으며, 이것이 함수 포인터의 장점이다.
+
+"함수 포인터의 장점은 하나의 포인터로 여러 함수를 다룰 수 있다는 것이다."
+
+### 함수 포인터로 함수 호출
+이제 함수를 호출해보자
+
+```
+int result = add(4,3);
+int result = (*pf)(3,4); // 함수 포인터로 함수를 호출
+```
+
+함수 포인터에 '*' 연산을 할 때는 반드시 괄호를 같이 써야 한다. 그렇지 않으면 함수를 호출한 결과에 '*'연산이 적용된다.
+
+> *pf(3,4) == *(pf(3,4)) // 이러면 안된다.
+
+함수 포인터 pf 로 함수를 호출할 때는 '*'연산자를 사용하는 것이 맞지만, 함수의 이름이 함수의 주소이고 함수 포인터에 저장된 값이 함수의 주소이므로 '*' 연산자 없이 함수 포인터만으로 호출하는것도 허용된다.
+
+```
+int result = (*pf)(3,4); // 함수 포인터로 함수를 호출
+int result = pf(3,4); // '*' 연산자 없이 함수 포인터만으로도 함수 호출 가능
+```
+
+함수의 타입 'int(int , int)'와 함수 포인터의 타입 'int(*)(int,int)' 가 다르기 때문에 엄밀히 따지면 아래의 코드처럼 '*" 와 '&'연산자를 사용하는것이 맞지만, 편의상 생략이 허용된다.
+
+```c
+[ 1 ]
+int add(int , int);
+int (*pf) (int , int) = &add;
+
+int result = (*pf)(3,4);
+
+[ 2 ] - 생략 버전
+int add(int , int);
+int (*pf) (int , int) = add;
+
+int result = pf(3,4);
+```
+
+가볍게 사용해보자 
+
+```c
+int add (int , int);
+int main(int argc, char const *argv[])
+{
+  int (*pf)(int , int) = add;
+
+  int result = pf(3,4);
+  printf("result : %d" , result);
+  return 0;
+}
+
+int add(int a, int b) {
+  return a + b;
+}
+
+/*
+result : 7
+*/
+```
+
+
+### 함수 포인터의 형변환
+함수 포인터도 형변환이 가능하며, 형변환 방법도 동일하다. 앞서 등장했던 아래의 코드에서 두 번째 문장은 형변환이 생략된 것이다. 원래는 pf 와 add 타입이 서로 달라서 형변환이 필요하다.
+
+```
+int add(int , int);
+int (*pf)(int , int) = add; // pf 타입은 'int(*)(int, int)' 형변환이 생략됨 
+
+int (*pf)(int , int) = (int(*)(int , int))add; // 형변환
+```
+
+배열 타입이 배열 포인터 타입으로 자동 형변환되는 것처럼, 함수 타입도 함수 포인터 타입으로 자동 형변환된다.
+
+```c
+[ 1 ] - 배열
+int arr[5];
+int* pArr = arr; // 'int*' 자동 형변환
+
+[ 2 ] - 함수
+int add(int , int);
+int (*pf)(int , int) = add; // 'int(*)(int , int)' 자동 형변환
+```
+
+### 함수 포인터 배열
+함수 포인터도 포인터이므로 배열로 선언이 가능하다. 함수 포인터 배열을 선언하는 방법은 먼저 함수 포인터를 선언한 다음에 함수 포인터이름의 바로 오른쪽에 '[]'를 붙이면 된다.
+
+```c
+void (*ptr)(void); // 함수 포인터
+void (*pfArr[5]) (void); // 함수 포인터 배열
+```
+
+함수 포인터 배열도 함수 포인터 만큼이나 선언이 복잡한데, 아래와 같이 typedef를 이용하면 함수 포인터 배열을 좀 더 간단히 표현 가능하다.
+
+```c
+typdef void FUNC_T (void); // void(void) 타입을 FUNC_T 로 정의
+
+FUNC_T* ptr;    // 함수 포인터
+FUNC_T* ptr[5]; // 함수 포인터 배열
+```
+
+이 두 함수를 가리키는 함수 포인터 pf1 , pf2는 아래의 [1] 과 같이 선언할 수 있고, 이를 함수 포인터 배열로 바꾸면 [2]와 같다.
+
+```c
+[ 1 ]
+int (*pf1)(int , int) = add;
+int (*pf2)(int , int ) = mul;
+int result = pf1(3,5);
+int result = pf2(3,5);
+
+[ 2 ]
+int (pfArr[])(int , int) = {add , mul};
+
+int result = pfArr[0](3, 5);
+int result2 = pfArr[1](3, 5);
+```
+
+함수 포인터 배열은 여러 개의 함수를 하나로 묶어서 다룰 때 유용한데 예를 들어 나중에 처리할 작업(함수)를 배열에 모아놨다가 특정 시점에 일괄적으로 호출하 수 있고, 배열에 저장된 함수 포인터의 순서를 바꿔서 함수의 호출 순서를 변경할 수 있는 등 다양하게 활용이 가능하다.
+
+
+### 함수 포인터 타입의 매개변수 [ 콜백 함수 ]
+매개변수를 함수포인터 타입으로 하면, 함수 내에서 매개변수를 통해 넘겨받은 함수를 호출할 수 있다. 즉, 함수의 작업에 필요한 함수를 매개변수로 제공받을 수 있다는 이야기 이다.
+
+```c
+void repeat (unsigned n , void(*pf) (void)) {
+
+  pf(); // 함수 호출 == 콜백 함수
+}
+```
+
+### 함수 포인터 타입의 반환 타입
+매개변수의 타입뿐만 아니라 반환타입으로 함수 포인터 타입이 가능하다. 그냥 함수 포인터 타입을 반환 타입 자리에 써주기만 하면 될 것 같은데 그리 간단하지는 않다.
+
+```c
+void (*)(void) getFunc(void); // 타입이 'void(*)(void)' 인 포인터를 반환하는 함수??
+```
+
+만일 함수 포인터 타입인 'void(*)(void)'를 반환타입으로 하는 함수 getFunc를 선언하라면 위와 같이 하면 되지 않을까? 라고 생각하겠지만 이런 표현은 허용되지 않는다.
+아래와 같이 반환타입이 함수 포인터 타입인 경우, 함수이름과 매개변수 목록을 반환 타입의 '*'이 있는 괄호 안에 넣어야한다.
+
+```c
+void (* getFunc(void)) (void);
+```
+
+위와 같이 '*' 괄호()가 여러개 섞여 있는 복잡한 선언문이 있다면, 십중팔구 바노한타입이 함수 포인터 타입인 경우이다. 이런 식의 표현이 함수 포인터를 이해하기 어렵게 만드는 가장 큰 이유이다. 다행히 아래와 같이 typedef 를 이용하면 이러한 복잡함을 줄일 수 있다.
+
+```c
+[ 1 ]
+void (* getFunc(void)) (void);
+
+[ 2 ] - typedef 사용
+typedef void FUNC_T(void); // void(void) 타입을 FUNC_T로 정의
+
+FUNC_T* getFunc(void); // void (* getFunc(void)) (void) 와 동일
+```
+
+한가지 주의점은 반환타입이 포인터가 아닌 함수타입이 되면 안된다.
+
+```c
+typedef void FUNC_T(void);
+
+void func(void) {}
+
+FUNC_T getFunc(void) { // 허용되지 않음
+  return func;
+} // 에러
+```
+
+위의 코드에서 함수 getFunc는 반환타입이 FUNC_T 이며, func 라는 함수의 주소를 반환한다. 함수 func 의 타입이 FUNC_T와 일치하므로 아무런 문제가 없어 보이지만 이러한 표현은 허용되지 않는다. 함수의 포인터를 반환할 수 있어도 함수 자체를 반환하는 것은 불가능하기 때문이다. 이것은 함수가 배열의 포인터를 반환할 수는 있어도 배열 자체를 반환할 수 없는 것과 같은 이유이다.
+
+따라서 밑과 같이 바뀌어야 한다.
+
+```c
+[ 1 ] - 변경 전
+typedef void FUNC_T(void);
+
+void func(void) {}
+
+FUNC_T getFunc(void) { // 허용되지 않음
+  return func;
+} // 에러
+
+[ 2 ] - 변경 후
+typedef void FUNC_T(void);
+
+void func(void) {}
+
+FUNC_T* getFunc(void) { 
+  return (FUNC_T*) func; // 형변환 생략 가능
+}  // OK!!
+```
+
+위와 같이 사용해보자
+```c
+#include <stdlib.h>
+typedef void FUNC_T(void); // void(void) 타입을 FUNC_T로 정의
+
+void f1(void)
+{
+  printf("f1() is called.\n");
+}
+
+void f2(void)
+{
+  printf("f2() is called.\n");
+}
+
+FUNC_T** makeFuncPtrArr(int size) {
+  FUNC_T** fpArr = calloc(size , sizeof(FUNC_T*));
+  return fpArr;
+}
+int main(int argc, char const *argv[])
+{
+  FUNC_T** fpArr = makeFuncPtrArr(3);
+
+  fpArr[0] = f1;
+  fpArr[1] = f2;
+  
+  while(*fpArr != NULL) {
+    (*fpArr) ();
+    fpArr++;
+  }
+  return 0;
+}
+
+/*
+f1() is called.
+f2() is called.
+*/
+```
+
+함수 포인터 배열을 동적으로 생성하고, 초기화 한 다음에 이 배열에 저장된 모든 함수를 호출하는 예제이다. 함수 makeFUncPtrArr 은 동적 할당으로 함수 포인터 배열을 생성하고 그 주소를 반환한다. 이 함수 포인터 배열의 요소는 타입이 'void(*)(void)'이므로 배열을 가리키는 포인터의 타입은 'void(**)(void)' 이어야 한다.
